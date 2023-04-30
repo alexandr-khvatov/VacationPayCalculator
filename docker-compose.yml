@@ -1,0 +1,9 @@
+version: "4.1"
+services:
+  api_vacation_pay:
+    build:
+      context: .
+    container_name: "${API_CONTAINER_NAME}"
+    ports:
+      - "${API_PORT}:8080"
+    restart: always
