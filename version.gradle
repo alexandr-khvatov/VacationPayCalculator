@@ -1,0 +1,6 @@
+ext {
+    versions = [
+            'springdoc'     : '1.6.14',
+
+    ]
+}
