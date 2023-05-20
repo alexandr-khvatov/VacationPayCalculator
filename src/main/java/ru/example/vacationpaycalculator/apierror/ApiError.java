@@ -1,5 +1,6 @@
 package ru.example.vacationpaycalculator.apierror;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,14 +15,16 @@ import java.util.List;
 import java.util.Set;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiError {
 
     private HttpStatus status;
-    //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+
     @DateTimeFormat(pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
+
     private String message;
-    private String debugMessage;
+
     private List<ApiSubError> subErrors;
 
     private ApiError() {
@@ -33,18 +36,10 @@ public class ApiError {
         this.status = status;
     }
 
-    public ApiError(HttpStatus status, Throwable ex) {
-        this();
-        this.status = status;
-        this.message = "Unexpected error";
-        this.debugMessage = ex.getLocalizedMessage();
-    }
-
-    public ApiError(HttpStatus status, String message, Throwable ex) {
+    public ApiError(HttpStatus status, String message) {
         this();
         this.status = status;
         this.message = message;
-        this.debugMessage = ex.getLocalizedMessage();
     }
 
     private void addSubError(ApiSubError subError) {
@@ -70,6 +65,7 @@ public class ApiError {
                 fieldError.getDefaultMessage());
     }
 
+
     public void addValidationErrors(List<FieldError> fieldErrors) {
         fieldErrors.forEach(this::addValidationError);
     }
@@ -84,11 +80,6 @@ public class ApiError {
         globalErrors.forEach(this::addValidationError);
     }
 
-    /**
-     * Utility method for adding error of ConstraintViolation. Usually when a @Validated validation fails.
-     *
-     * @param cv the ConstraintViolation
-     */
     private void addValidationError(ConstraintViolation<?> cv) {
         this.addValidationError(
                 cv.getRootBeanClass().getSimpleName(),
@@ -101,4 +92,16 @@ public class ApiError {
         constraintViolations.forEach(this::addValidationError);
     }
 
+    private void addMismatchError(String field, Object rejectedValue) {
+        addSubError(new ApiMismatchError(field, rejectedValue));
+    }
+
+    private void addMismatchError(FieldError fieldError) {
+        this.addMismatchError(
+                fieldError.getField(),
+                fieldError.getRejectedValue());
+    }
+    public void addMismatchErrors(List<FieldError> fieldErrors) {
+        fieldErrors.forEach(this::addMismatchError);
+    }
 }
