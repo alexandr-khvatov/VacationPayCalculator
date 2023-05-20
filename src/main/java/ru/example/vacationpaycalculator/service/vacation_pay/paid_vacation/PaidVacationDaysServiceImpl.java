@@ -36,7 +36,7 @@ public class PaidVacationDaysServiceImpl implements PaidVacationDaysService {
 
     private void checkValidDataDuration(LocalDate startVocation, LocalDate endVocation) {
         if (startVocation.compareTo(endVocation) > 0) {
-            throw new IllegalArgumentException("Wrong time range");
+            throw new IllegalArgumentException(String.format("Wrong time range: start=%s, end=%s", startVocation, endVocation));
         }
     }
 
